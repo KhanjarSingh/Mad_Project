@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "../screens/HomeScreen";
 import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
+import ProfileScreen from "../screens/ProfileScreen";
 const Tab = createBottomTabNavigator();
 
 
@@ -11,14 +11,6 @@ function QueuesScreen() {
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Text>🕒 Queues Screen</Text>
-    </View>
-  );
-}
-
-function ProfileScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>👤 Profile Screen</Text>
     </View>
   );
 }
