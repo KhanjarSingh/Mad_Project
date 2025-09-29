@@ -15,11 +15,34 @@ datasource db {
 }
 
 model Users {
-    id    Int    @id @default(autoincrement())
-    name  String
-    email String @unique
-    phone String
-    password String 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id          Int            @id @default(autoincrement())
+    name        String
+    email       String         @unique
+    phone       String
+    password    String
+    createdAt   DateTime       @default(now())
+    updatedAt   DateTime       @updatedAt
+    queues      Queues[]
+    queueMember QueueMembers[] 
+}
+
+model Queues {
+    id         Int      @id @default(autoincrement())
+    name       String
+    business   Users    @relation(fields: [businessId], references: [id])
+    businessId Int
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    members QueueMembers[]
+}
+
+model QueueMembers {
+    id       Int      @id @default(autoincrement())
+    user     Users    @relation(fields: [userId], references: [id])
+    userId   Int
+    queue    Queues   @relation(fields: [queueId], references: [id])
+    queueId  Int
+    position Int
+    joinedAt DateTime @default(now())
 }
