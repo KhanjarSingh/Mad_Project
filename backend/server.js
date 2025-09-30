@@ -12,6 +12,16 @@ app.get('/',(req,res)=>{
 })
 
 
+// app.post('/queues', /* Create queue */);
+// app.get('/queues', /* List queues */);
+// app.post('/queues/:id/join', /* Join queue */);
+// app.delete('/queues/:id/leave', /* Leave queue */);
+
+// // User authentication routes
+// app.post('/auth/login', /* Login */);
+// app.get('/auth/profile', /* Get profile */);
+
+
 app.listen(process.env.PORT,()=>{
     console.log(` Server is running at http://localhost:${process.env.PORT}`)
 })
