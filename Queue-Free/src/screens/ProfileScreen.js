@@ -1,19 +1,21 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProfileScreen() {
+  const { user, logout } = useAuth();
   return (
     <View style={styles.container}>
 
       <Image
-        source={{ uri: "https://via.placeholder.com/120" }} 
+        source={{ uri: "" }} 
         style={styles.profileImage}
       />
 
-      <Text style={styles.name}>Random new</Text>
+      <Text style={styles.name}>{user?.name || 'User'}</Text>
 
-      <Text style={styles.email}>random@example.com</Text>
+      <Text style={styles.email}>{user?.email || ''}</Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button}>
@@ -21,7 +23,7 @@ export default function ProfileScreen() {
           <Text style={styles.buttonText}>Settings</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, { backgroundColor: "#f44336" }]}>
+        <TouchableOpacity style={[styles.button, { backgroundColor: "#f44336" }]} onPress={logout}>
           <Ionicons name="log-out-outline" size={20} color="#fff" />
           <Text style={styles.buttonText}>Logout</Text>
         </TouchableOpacity>
