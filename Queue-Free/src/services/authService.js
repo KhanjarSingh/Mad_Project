@@ -1,73 +1,108 @@
-const BASE_URL = 'http://localhost:3000'; // Change this to your server URL
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../config/api';
+
+
+const TOKEN_KEY = 'auth_token';
 
 export const authService = {
-    // Login user
-    login: async (email, password) => {
-        try {
-            const response = await fetch(`${BASE_URL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            });
+  setToken: async (token) => {
+    try {
+      await AsyncStorage.setItem(TOKEN_KEY, token);
+    } catch (error) {
+      console.error('Error saving token:', error);
+    }
+  },
 
-            const data = await response.json();
+  getToken: async () => {
+    try {
+      return await AsyncStorage.getItem(TOKEN_KEY);
+    } catch (error) {
+      console.error('Error getting token:', error);
+      return null;
+    }
+  },
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Login failed');
-            }
+  removeToken: async () => {
+    try {
+      await AsyncStorage.deleteItem(TOKEN_KEY);
+    } catch (error) {
+      console.error('Error removing token:', error);
+    }
+  },
 
-            return data;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
-    },
+  login: async (email, password) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Register user
-    register: async (userData) => {
-        try {
-            const response = await fetch(`${BASE_URL}/users`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData),
-            });
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
 
-            const data = await response.json();
+      await authService.setToken(data.token);
+      return data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  },
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Registration failed');
-            }
+  register: async (userData) => {
+    try {
+      const response = await fetch(`${API_URL}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
 
-            return data;
-        } catch (error) {
-            console.error('Registration error:', error);
-            throw error;
-        }
-    },
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
 
-    // Get user profile
-    getProfile: async (token) => {
-        try {
-            const response = await fetch(`${BASE_URL}/auth/profile`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+      await authService.setToken(data.token);
+      return data;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  },
 
-            const data = await response.json();
+  getProfile: async () => {
+    try {
+      const token = await authService.getToken();
+      if (!token) throw new Error('No auth token');
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to fetch profile');
-            }
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-            return data;
-        } catch (error) {
-            console.error('Get profile error:', error);
-            throw error;
-        }
-    },
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch profile');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Get profile error:', error);
+      throw error;
+    }
+  },
+
+  logout: async () => {
+    await authService.removeToken();
+  },
 };

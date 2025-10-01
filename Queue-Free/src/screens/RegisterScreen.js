@@ -1,155 +1,60 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    Alert,
-    ScrollView,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
-const RegisterScreen = ({ navigation }) => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: '',
-    });
+export default function RegisterScreen({ navigation }) {
+    const { register } = useAuth();
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [password, setPassword] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleRegister = () => {
-        // Basic validation
-        if (!formData.name || !formData.email || !formData.password) {
-            Alert.alert('Error', 'Please fill in all required fields');
+    const handleRegister = async () => {
+        if (!name || !email || !password) {
+            Alert.alert('Missing Info', 'Please fill all required fields');
             return;
         }
-
-        if (formData.password !== formData.confirmPassword) {
-            Alert.alert('Error', 'Passwords do not match');
-            return;
+        try {
+            setSubmitting(true);
+            await register({ name: name.trim(), email: email.trim(), phone: phone.trim(), password });
+        } catch (err) {
+            Alert.alert('Registration Failed', err.message || 'Please try again');
+        } finally {
+            setSubmitting(false);
         }
-
-        // TODO: Add actual registration logic
-        console.log('Registering user:', formData.email);
-    };
-
-    const updateFormData = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
     };
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.title}>Create Account</Text>
+        <View style={styles.container}>
+            <Text style={styles.title}>Create account</Text>
+            <Text style={styles.subtitle}>Join Queue-Free today</Text>
 
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Full Name"
-                    value={formData.name}
-                    onChangeText={(text) => updateFormData('name', text)}
-                />
+            <TextInput style={styles.input} placeholder="Full name" value={name} onChangeText={setName} />
+            <TextInput style={styles.input} placeholder="Email" autoCapitalize="none" keyboardType="email-address" value={email} onChangeText={setEmail} />
+            <TextInput style={styles.input} placeholder="Phone" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+            <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={formData.email}
-                    onChangeText={(text) => updateFormData('email', text)}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                />
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Phone Number"
-                    value={formData.phone}
-                    onChangeText={(text) => updateFormData('phone', text)}
-                    keyboardType="phone-pad"
-                />
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    value={formData.password}
-                    onChangeText={(text) => updateFormData('password', text)}
-                    secureTextEntry
-                />
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
-                    onChangeText={(text) => updateFormData('confirmPassword', text)}
-                    secureTextEntry
-                />
-            </View>
-
-            <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-                <Text style={styles.buttonText}>Register</Text>
+            <TouchableOpacity style={[styles.button, submitting && { opacity: 0.6 }]} onPress={handleRegister} disabled={submitting}>
+                <Text style={styles.buttonText}>{submitting ? 'Creating…' : 'Create account'}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-                style={styles.loginLink}
-                onPress={() => navigation.navigate('Login')}
-            >
-                <Text style={styles.loginText}>
-                    Already have an account? Login here
-                </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.link}>Have an account? Sign in</Text>
             </TouchableOpacity>
-        </ScrollView>
+        </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#fff',
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#333',
-        marginTop: 60,
-        marginBottom: 40,
-        textAlign: 'center',
-    },
-    inputContainer: {
-        marginBottom: 20,
-    },
-    input: {
-        height: 50,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        marginBottom: 15,
-        fontSize: 16,
-    },
-    registerButton: {
-        backgroundColor: '#007AFF',
-        height: 50,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    loginLink: {
-        marginTop: 20,
-        marginBottom: 30,
-        alignItems: 'center',
-    },
-    loginText: {
-        color: '#007AFF',
-        fontSize: 16,
-    },
+    container: { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#fff' },
+    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
+    subtitle: { fontSize: 14, color: 'gray', marginBottom: 24 },
+    input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12 },
+    button: { backgroundColor: '#4a90e2', paddingVertical: 14, borderRadius: 10, alignItems: 'center', marginTop: 4 },
+    buttonText: { color: '#fff', fontWeight: 'bold' },
+    link: { color: '#4a90e2', textAlign: 'center', marginTop: 16 },
 });
 
-export default RegisterScreen;
+
+
