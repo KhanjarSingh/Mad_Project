@@ -24,7 +24,7 @@ export const authService = {
 
   removeToken: async () => {
     try {
-      await AsyncStorage.deleteItem(TOKEN_KEY);
+      await AsyncStorage.removeItem(TOKEN_KEY);
     } catch (error) {
       console.error('Error removing token:', error);
     }
