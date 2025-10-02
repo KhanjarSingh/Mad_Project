@@ -130,8 +130,115 @@ app.get('/auth/profile', authenticateToken, async (req, res) => {
 });
 
 
+app.post('/queues', authenticateToken, async (req, res) => {
+    const { name } = req.body;
 
+    if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+    }
 
+    try {
+        const queue = await prisma.queues.create({
+            data: {
+                name,
+                businessId: req.user.userId
+            }
+        });
+        res.status(201).json(queue);
+    } catch (error) {
+        console.error('Create queue error:', error);
+        res.status(500).json({ error: 'Failed to create queue' });
+    }
+});
+
+app.get('/queues', async (req, res) => {
+    try {
+        const queues = await prisma.queues.findMany({
+            include: {
+                _count: {
+                    select: { members: true }
+                }
+            }
+        });
+        res.json(queues);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch queues' });
+    }
+});
+
+app.get('/queues/:id', async (req, res) => {
+    try {
+        const queue = await prisma.queues.findUnique({
+            where: { id: parseInt(req.params.id) },
+            include: {
+                members: {
+                    select: {
+                        id: true,
+                        joinedAt: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    },
+                    orderBy: { joinedAt: 'asc' }
+                }
+            }
+        });
+        
+        if (!queue) {
+            return res.status(404).json({ error: 'Queue not found' });
+        }
+        
+        res.json(queue);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch queue details' });
+    }
+});
+
+app.post('/queues/:id/join', authenticateToken, async (req, res) => {
+    const queueId = parseInt(req.params.id);
+    
+    try {
+        const queue = await prisma.queues.findUnique({
+            where: { id: queueId },
+            include: { _count: { select: { members: true } } }
+        });
+
+        if (!queue) {
+            return res.status(404).json({ error: 'Queue not found' });
+        }
+
+        const nextPosition = (queue._count?.members || 0) + 1;
+
+        const member = await prisma.queueMembers.create({
+            data: {
+                queueId,
+                userId: req.user.userId,
+                position: nextPosition
+            }
+        });
+
+        res.status(201).json(member);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to join queue' });
+    }
+});
+
+app.delete('/queues/:id/leave', authenticateToken, async (req, res) => {
+    try {
+        await prisma.queueMembers.deleteMany({
+            where: {
+                queueId: parseInt(req.params.id),
+                userId: req.user.userId
+            }
+        });
+        res.status(200).json({ message: 'Successfully left the queue' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to leave queue' });
+    }
+});
 app.listen(process.env.PORT, () => {
     console.log(`Server is running at http://localhost:${process.env.PORT}`);
 });
